@@ -4,7 +4,7 @@
 Group Members
 # GDC Jayawardane
 # BH Hirimuthugoda
-# Pulindu
+# Pulindu Vidmal
 # WGBC Bandara
 #
 #
