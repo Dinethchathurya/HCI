@@ -19,7 +19,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # needed for pushing the bumped version
+      contents: write      # needed for pushing commits and tags
       packages: write
     steps:
       - uses: actions/checkout@v4
@@ -29,7 +29,7 @@ jobs:
           registry-url: https://npm.pkg.github.com/
       - run: npm ci
 
-      - name: Bump version
+      - name: Bump version and push tag
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
         run: |
@@ -38,11 +38,16 @@ jobs:
           npm version patch -m "release: v%s"
           git push https://x-access-token:${GH_PAT}@github.com/${{ github.repository }}.git HEAD:main --follow-tags
 
+      - name: Publish to GitHub Packages
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm publish
+
   create-release:
     needs: publish-gpr
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # required to create a release
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
