@@ -26,6 +26,15 @@ const DragControls: React.FC = () => {
   const selectedObject = useRef<THREE.Object3D | null>(null);
   const lastValidPosition = useRef(new THREE.Vector3());
   const boundingBox = useRef(new THREE.Box3());
+  const orbitControlsRef = useRef<any>(null);
+
+  // Get orbit controls reference from parent
+  useEffect(() => {
+    const controls = scene.parent?.parent?.getObjectByName('orbit-controls');
+    if (controls) {
+      orbitControlsRef.current = controls;
+    }
+  }, [scene]);
 
   // Get furniture dimensions with rotation consideration
   const getFurnitureDimensions = (type: string, rotation: number, scale: THREE.Vector3) => {
@@ -44,11 +53,9 @@ const DragControls: React.FC = () => {
       default: width = 50; depth = 50;
     }
 
-    // Apply scale
     width *= scale.x;
     depth *= scale.z;
 
-    // Account for rotation
     const cos = Math.abs(Math.cos(rotation));
     const sin = Math.abs(Math.sin(rotation));
     const rotatedWidth = width * cos + depth * sin;
@@ -57,7 +64,6 @@ const DragControls: React.FC = () => {
     return { width: rotatedWidth, depth: rotatedDepth };
   };
 
-  // Check for collision between two furniture items
   const checkCollision = (
     pos1: THREE.Vector3,
     type1: string,
@@ -76,10 +82,8 @@ const DragControls: React.FC = () => {
     const halfWidth2 = dim2.width / 2;
     const halfDepth2 = dim2.depth / 2;
 
-    // Add padding for better spacing
     const padding = 20;
 
-    // Create bounding boxes for both furniture items
     const box1 = new THREE.Box3();
     const box2 = new THREE.Box3();
 
@@ -96,19 +100,16 @@ const DragControls: React.FC = () => {
     return box1.intersectsBox(box2);
   };
 
-  // Check if position is valid
   const isValidPosition = (position: THREE.Vector3, currentFurniture: THREE.Object3D) => {
     const furnitureType = currentFurniture.userData.type;
     const rotation = currentFurniture.rotation.y;
     const scale = currentFurniture.scale;
     const dimensions = getFurnitureDimensions(furnitureType, rotation, scale);
     
-    // Add padding for better wall clearance
     const padding = 20;
     const halfWidth = dimensions.width / 2 + padding;
     const halfDepth = dimensions.depth / 2 + padding;
     
-    // Room boundaries check with padding
     const roomHalfWidth = room.width / 2 - padding;
     const roomHalfLength = room.length / 2 - padding;
     
@@ -121,7 +122,6 @@ const DragControls: React.FC = () => {
       return false;
     }
 
-    // Collision check with other furniture
     const currentId = currentFurniture.userData.id;
     const otherFurniture = furniture.filter(f => f.id !== currentId);
     
@@ -176,6 +176,11 @@ const DragControls: React.FC = () => {
         
         isDragging.current = true;
         canvasElement.style.cursor = 'grabbing';
+
+        // Disable orbit controls when starting to drag
+        if (orbitControlsRef.current) {
+          orbitControlsRef.current.enabled = false;
+        }
       }
     };
 
@@ -193,7 +198,6 @@ const DragControls: React.FC = () => {
         .copy(intersectionPoint.current)
         .sub(offset.current);
 
-      // Try the new position
       if (isValidPosition(newPosition, selectedObject.current)) {
         lastValidPosition.current.copy(newPosition);
         updateFurniture(selectedObject.current.userData.id, {
@@ -204,7 +208,6 @@ const DragControls: React.FC = () => {
           }
         });
       } else {
-        // If invalid, revert to last valid position
         updateFurniture(selectedObject.current.userData.id, {
           position: {
             x: lastValidPosition.current.x,
@@ -219,6 +222,11 @@ const DragControls: React.FC = () => {
       if (isDragging.current) {
         isDragging.current = false;
         canvasElement.style.cursor = 'auto';
+        
+        // Re-enable orbit controls when done dragging
+        if (orbitControlsRef.current) {
+          orbitControlsRef.current.enabled = true;
+        }
       }
     };
 
@@ -226,6 +234,11 @@ const DragControls: React.FC = () => {
       if (isDragging.current) {
         isDragging.current = false;
         canvasElement.style.cursor = 'auto';
+        
+        // Re-enable orbit controls when drag is cancelled
+        if (orbitControlsRef.current) {
+          orbitControlsRef.current.enabled = true;
+        }
       }
     };
 
@@ -259,6 +272,7 @@ export const RoomEditor3D: React.FC = () => {
           castShadow
         />
         <OrbitControls 
+          name="orbit-controls"
           enablePan={true}
           enableZoom={true}
           enableRotate={true}

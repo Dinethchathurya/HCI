@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { Save, Loader2, Trash2, Download } from 'lucide-react';
+import { Save, Loader2, Trash2, Download, LogOut } from 'lucide-react';
 import { useAppState } from '../store/StateProvider';
+import { useAuth } from '../store/AuthProvider';
+import { useNavigate } from 'react-router-dom';
 
 export const Header: React.FC = () => {
   const { 
@@ -9,6 +11,9 @@ export const Header: React.FC = () => {
     savedLayouts,
     deleteLayout
   } = useAppState();
+  
+  const { logout } = useAuth();
+  const navigate = useNavigate();
   
   const [layoutName, setLayoutName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -35,6 +40,11 @@ export const Header: React.FC = () => {
       deleteLayout(currentLayoutId);
       setIsDeleting(false);
     }, 500);
+  };
+
+  const handleSignOut = () => {
+    logout();
+    navigate('/');
   };
 
   const exportLayout = () => {
@@ -123,6 +133,16 @@ export const Header: React.FC = () => {
             </button>
           </>
         )}
+
+        <div className="h-8 border-l border-gray-200 mx-2"></div>
+
+        <button
+          onClick={handleSignOut}
+          className="text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-md px-3 py-1.5 text-sm font-medium flex items-center space-x-1 transition-colors"
+        >
+          <LogOut size={16} />
+          <span>Sign Out</span>
+        </button>
       </div>
     </header>
   );
