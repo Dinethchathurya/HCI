@@ -25,13 +25,15 @@ jobs:
       - name: Build project
         run: npm run build
 
-      - name: Bump version (optional)
+      - name: Bump version and push
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
         run: |
           npm version patch --no-git-tag-version
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git commit -am "CI: bump version [skip ci]"
-          git push
+          git push https://x-access-token:${GH_PAT}@github.com/${{ github.repository }}.git HEAD:main
 
       - name: Publish to GitHub Packages
         env:
