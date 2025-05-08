@@ -1,90 +1,111 @@
 import React, { useState } from 'react';
 import { 
-  LayoutGrid, 
   Sofa, 
-  Sliders, 
-  ChevronLeft, 
-  ChevronRight,
-  Layers
+  Table, 
+  Container, 
+  Lamp, 
+  ChevronRight, 
+  ChevronDown,
+  Save
 } from 'lucide-react';
-import { FurnitureList } from './sidebar/FurnitureList';
-import { RoomControls } from './sidebar/RoomControls';
-import { SavedLayouts } from './sidebar/SavedLayouts';
+import useLayoutStore from '../store/layoutStore';
+import furnitureCatalog, { furnitureCategories } from '../data/furnitureCatalog';
 
-type TabType = 'furniture' | 'room' | 'layouts';
+interface SidebarProps {
+  onShowSavedLayouts: () => void;
+}
 
-export const Sidebar: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<TabType>('furniture');
-  const [isCollapsed, setIsCollapsed] = useState(false);
+const Sidebar: React.FC<SidebarProps> = ({ onShowSavedLayouts }) => {
+  const [expandedCategory, setExpandedCategory] = useState<string | null>('seating');
+  const { addFurniture, currentLayout } = useLayoutStore();
 
-  const toggleCollapse = () => {
-    setIsCollapsed(!isCollapsed);
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'seating':
+        return <Sofa className="h-5 w-5" />;
+      case 'tables':
+        return <Table className="h-5 w-5" />;
+      case 'storage':
+        return <Container className="h-5 w-5" />;
+      case 'decor':
+        return <Lamp className="h-5 w-5" />;
+      default:
+        return <Table className="h-5 w-5" />;
+    }
+  };
+
+  const handleAddFurniture = (category: string, index: number) => {
+    if (!currentLayout) return;
+    
+    const furniture = furnitureCatalog[category][index];
+    
+    // Position the furniture in the center of the room
+    const { width, length } = currentLayout.room.dimensions;
+    const position: [number, number, number] = [width/2, 0, length/2];
+    
+    addFurniture({
+      ...furniture,
+      position,
+    });
   };
 
   return (
-    <aside 
-      className={`bg-white border-r border-gray-200 flex flex-col transition-all duration-300 ${
-        isCollapsed ? 'w-16' : 'w-72'
-      }`}
-    >
-      <div className="flex border-b border-gray-200">
-        <div className={`flex ${isCollapsed ? 'flex-col py-3' : 'flex-row py-2 px-2'}`}>
-          <button
-            onClick={() => !isCollapsed && setActiveTab('furniture')}
-            className={`p-2 rounded-md flex items-center justify-center ${
-              activeTab === 'furniture' && !isCollapsed 
-                ? 'bg-blue-50 text-blue-600' 
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
-            title="Furniture"
-          >
-            <Sofa size={20} />
-            {!isCollapsed && <span className="ml-2 text-sm font-medium">Furniture</span>}
-          </button>
-          
-          <button
-            onClick={() => !isCollapsed && setActiveTab('room')}
-            className={`p-2 rounded-md flex items-center justify-center ${
-              activeTab === 'room' && !isCollapsed 
-                ? 'bg-blue-50 text-blue-600' 
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
-            title="Room Settings"
-          >
-            <Sliders size={20} />
-            {!isCollapsed && <span className="ml-2 text-sm font-medium">Room</span>}
-          </button>
-          
-          <button
-            onClick={() => !isCollapsed && setActiveTab('layouts')}
-            className={`p-2 rounded-md flex items-center justify-center ${
-              activeTab === 'layouts' && !isCollapsed 
-                ? 'bg-blue-50 text-blue-600' 
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
-            title="Saved Layouts"
-          >
-            <Layers size={20} />
-            {!isCollapsed && <span className="ml-2 text-sm font-medium">Layouts</span>}
-          </button>
-        </div>
-        
-        <button 
-          onClick={toggleCollapse}
-          className="p-2 ml-auto text-gray-500 hover:text-gray-800"
-          title={isCollapsed ? "Expand" : "Collapse"}
-        >
-          {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
-        </button>
+    <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
+      <div className="p-4 border-b border-gray-200">
+        <h2 className="font-semibold text-gray-700">Furniture Catalog</h2>
       </div>
       
-      {!isCollapsed && (
-        <div className="flex-1 overflow-y-auto p-4">
-          {activeTab === 'furniture' && <FurnitureList />}
-          {activeTab === 'room' && <RoomControls />}
-          {activeTab === 'layouts' && <SavedLayouts />}
-        </div>
-      )}
-    </aside>
+      <div className="flex-1 overflow-y-auto">
+        {furnitureCategories.map((category) => (
+          <div key={category} className="border-b border-gray-100">
+            <button
+              onClick={() => setExpandedCategory(expandedCategory === category ? null : category)}
+              className="w-full flex items-center justify-between p-3 hover:bg-gray-50 text-left"
+            >
+              <div className="flex items-center">
+                <span className="mr-2 text-gray-600">{getCategoryIcon(category)}</span>
+                <span className="font-medium capitalize">{category}</span>
+              </div>
+              {expandedCategory === category ? (
+                <ChevronDown className="h-4 w-4 text-gray-500" />
+              ) : (
+                <ChevronRight className="h-4 w-4 text-gray-500" />
+              )}
+            </button>
+            
+            {expandedCategory === category && (
+              <div className="px-3 pb-2">
+                {furnitureCatalog[category].map((item, index) => (
+                  <button
+                    key={`${category}-${index}`}
+                    onClick={() => handleAddFurniture(category, index)}
+                    disabled={!currentLayout}
+                    className={`w-full text-left p-2 rounded-md my-1 text-sm ${
+                      currentLayout 
+                        ? 'hover:bg-indigo-50 text-gray-700' 
+                        : 'text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    {item.name}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      
+      <div className="p-4 border-t border-gray-200">
+        <button
+          onClick={onShowSavedLayouts}
+          className="w-full flex items-center justify-center px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+        >
+          <Save className="h-4 w-4 mr-2" />
+          <span>Saved Layouts</span>
+        </button>
+      </div>
+    </div>
   );
 };
+
+export default Sidebar;
