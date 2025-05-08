@@ -21,8 +21,8 @@ export const RoomControls: React.FC = () => {
         <div className="space-y-3">
           <div>
             <div className="flex justify-between mb-1">
-              <label className="text-xs text-gray-600">Width (cm)</label>
-              <span className="text-xs text-gray-500">{room.width}cm</span>
+              <label className="text-xs text-gray-600">Width</label>
+              <span className="text-xs text-gray-500">{(room.width / 100)}m</span>
             </div>
             <input
               type="range"
@@ -37,8 +37,8 @@ export const RoomControls: React.FC = () => {
           
           <div>
             <div className="flex justify-between mb-1">
-              <label className="text-xs text-gray-600">Length (cm)</label>
-              <span className="text-xs text-gray-500">{room.length}cm</span>
+              <label className="text-xs text-gray-600">Length</label>
+              <span className="text-xs text-gray-500">{(room.length / 100)}m</span>
             </div>
             <input
               type="range"
@@ -53,8 +53,8 @@ export const RoomControls: React.FC = () => {
           
           <div>
             <div className="flex justify-between mb-1">
-              <label className="text-xs text-gray-600">Height (cm)</label>
-              <span className="text-xs text-gray-500">{room.height}cm</span>
+              <label className="text-xs text-gray-600">Height</label>
+              <span className="text-xs text-gray-500">{(room.height / 100)}m</span>
             </div>
             <input
               type="range"
