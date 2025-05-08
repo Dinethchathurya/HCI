@@ -3,7 +3,7 @@ name: Build and Publish to GitHub Packages
 on:
   push:
     branches:
-      - main
+      - mains
 
 jobs:
   build-and-publish:
