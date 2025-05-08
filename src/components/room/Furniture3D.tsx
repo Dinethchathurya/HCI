@@ -9,6 +9,23 @@ interface Furniture3DProps {
   furniture: Furniture;
 }
 
+// Get furniture height based on type
+const getFurnitureHeight = (type: string): number => {
+  switch (type) {
+    case 'sofa': return 40;
+    case 'chair': return 40;
+    case 'coffee_table': return 20;
+    case 'bookshelf': return 120;
+    case 'plant': return 40;
+    case 'wardrobe': return 180;
+    case 'rug': return 1;
+    case 'bed': return 30;
+    case 'dining_table': return 30;
+    case 'lamp': return 100;
+    default: return 50;
+  }
+};
+
 // Simple placeholder models for furniture
 const createPlaceholderGeometry = (type: string): THREE.BufferGeometry => {
   switch (type) {
@@ -26,7 +43,7 @@ const createPlaceholderGeometry = (type: string): THREE.BufferGeometry => {
     case 'wardrobe':
       return new THREE.BoxGeometry(100, 180, 50);
     case 'rug':
-      return new THREE.BoxGeometry(120, 5, 180);
+      return new THREE.BoxGeometry(120, 1, 180);
     case 'bed':
       return new THREE.BoxGeometry(140, 30, 200);
     case 'dining_table':
@@ -46,6 +63,12 @@ export const Furniture3D: React.FC<Furniture3DProps> = ({ furniture }) => {
   // Get furniture template
   const template = defaultFurniture.find(f => f.type === furniture.type);
   
+  // Get furniture height
+  const height = getFurnitureHeight(furniture.type);
+  
+  // Calculate Y position to place furniture on floor
+  const yPosition = height * furniture.scale.y / 2;
+  
   // Apply scale from furniture item
   const scale = [
     furniture.scale.x,
@@ -57,25 +80,24 @@ export const Furniture3D: React.FC<Furniture3DProps> = ({ furniture }) => {
   const material = new THREE.MeshStandardMaterial({
     color: furniture.color,
     transparent: true,
-    opacity: isSelected ? 0.7 : 1
+    opacity: isSelected ? 0.7 : 1,
+    roughness: 0.7,
+    metalness: 0.2
   });
   
-  // In a real implementation, we would load the 3D model here
-  // For simplicity, we use placeholder geometry
+  // Create geometry
   const geometry = createPlaceholderGeometry(furniture.type);
   
   // Highlight if selected
   useEffect(() => {
     if (meshRef.current) {
       if (isSelected) {
-        // Add outline or highlight effect
         meshRef.current.traverse((child) => {
           if (child instanceof THREE.Mesh) {
             child.material.emissive = new THREE.Color(0x555555);
           }
         });
       } else {
-        // Remove highlight
         meshRef.current.traverse((child) => {
           if (child instanceof THREE.Mesh) {
             child.material.emissive = new THREE.Color(0x000000);
@@ -88,12 +110,12 @@ export const Furniture3D: React.FC<Furniture3DProps> = ({ furniture }) => {
   return (
     <mesh
       ref={meshRef}
-      position={[furniture.position.x, furniture.position.y, furniture.position.z]}
+      position={[furniture.position.x, yPosition, furniture.position.z]}
       rotation={[0, furniture.rotation.y, 0]}
       scale={scale}
       castShadow
       receiveShadow
-      userData={{ id: furniture.id, isFurniture: true }}
+      userData={{ id: furniture.id, type: furniture.type, isFurniture: true }}
     >
       <primitive object={geometry} />
       <primitive object={material} />

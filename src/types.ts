@@ -37,6 +37,7 @@ export interface Room {
   height: number;
   wallColor: string;
   floorColor: string;
+  wallOpacity: number;
 }
 
 export interface RoomLayout {

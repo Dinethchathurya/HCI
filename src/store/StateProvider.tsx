@@ -26,7 +26,8 @@ const defaultRoom: Room = {
   length: 600,
   height: 250,
   wallColor: '#f5f5f5',
-  floorColor: '#e0e0e0'
+  floorColor: '#e0e0e0',
+  wallOpacity: 0.4
 };
 
 const StateContext = createContext<StateContextType | undefined>(undefined);
@@ -39,7 +40,6 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [savedLayouts, setSavedLayouts] = useState<RoomLayout[]>([]);
   const [currentLayoutId, setCurrentLayoutId] = useState<string | null>(null);
 
-  // Load saved layouts from localStorage on mount
   useEffect(() => {
     const savedLayoutsStr = localStorage.getItem('roomLayouts');
     if (savedLayoutsStr) {
@@ -52,7 +52,6 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, []);
 
-  // Save layouts to localStorage when they change
   useEffect(() => {
     localStorage.setItem('roomLayouts', JSON.stringify(savedLayouts));
   }, [savedLayouts]);
@@ -69,11 +68,15 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const templateFurniture = defaultFurniture.find(f => f.type === type);
     
     if (!templateFurniture) return;
-    
+
     const newFurniture: Furniture = {
       id: uuidv4(),
       type,
-      position: { x: 0, y: 0, z: 0 },
+      position: {
+        x: 0,
+        y: 0,
+        z: 0
+      },
       rotation: { y: 0 },
       scale: { ...templateFurniture.defaultScale },
       color: templateFurniture.defaultColor
@@ -99,26 +102,26 @@ export const StateProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const saveCurrentLayout = (name: string) => {
-    const newLayout: RoomLayout = {
-      id: uuidv4(), // Always generate a new ID for new layouts
-      name,
+    const newLayoutId = uuidv4();
+    const layout: RoomLayout = {
+      id: newLayoutId,
+      name: `${name} (${new Date().toLocaleTimeString()})`,
       createdAt: new Date().toISOString(),
       room: { ...room },
       furniture: [...furniture]
     };
 
-    // Always add as a new layout
     setSavedLayouts(prev => {
-      // Limit to 15 layouts by removing oldest if necessary
-      const layouts = [...prev];
-      if (layouts.length >= 15) {
-        layouts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        layouts.pop(); // Remove oldest layout
+      const newLayouts = [...prev, layout];
+      if (newLayouts.length > 15) {
+        return newLayouts
+          .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+          .slice(1);
       }
-      return [newLayout, ...layouts];
+      return newLayouts;
     });
     
-    setCurrentLayoutId(newLayout.id);
+    setCurrentLayoutId(newLayoutId);
   };
 
   const loadLayout = (id: string) => {

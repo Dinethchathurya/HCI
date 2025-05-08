@@ -1,87 +1,129 @@
-import React from 'react';
-import { Sofa, Grid3X3, Save, FilePlus, View } from 'lucide-react';
-import useLayoutStore from '../store/layoutStore';
+import React, { useState } from 'react';
+import { Save, Loader2, Trash2, Download } from 'lucide-react';
+import { useAppState } from '../store/StateProvider';
 
-const Header: React.FC = () => {
+export const Header: React.FC = () => {
   const { 
-    viewMode, 
-    setViewMode, 
-    createLayout, 
-    saveLayout, 
-    currentLayout 
-  } = useLayoutStore();
+    currentLayoutId, 
+    saveCurrentLayout, 
+    savedLayouts,
+    deleteLayout
+  } = useAppState();
+  
+  const [layoutName, setLayoutName] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const handleCreateNew = () => {
-    createLayout('New Layout');
+  const handleSave = () => {
+    if (!layoutName.trim()) return;
+    
+    setIsSaving(true);
+    // Simulate a brief delay for saving
+    setTimeout(() => {
+      saveCurrentLayout(layoutName);
+      setLayoutName('');
+      setIsSaving(false);
+    }, 500);
   };
 
-  const handleSaveLayout = () => {
-    saveLayout();
+  const handleDelete = () => {
+    if (!currentLayoutId) return;
+    
+    setIsDeleting(true);
+    // Simulate a brief delay for deleting
+    setTimeout(() => {
+      deleteLayout(currentLayoutId);
+      setIsDeleting(false);
+    }, 500);
   };
+
+  const exportLayout = () => {
+    if (!currentLayoutId) return;
+    
+    const layout = savedLayouts.find(l => l.id === currentLayoutId);
+    if (!layout) return;
+    
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(layout));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", `${layout.name}.json`);
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+  };
+
+  const currentLayout = currentLayoutId 
+    ? savedLayouts.find(l => l.id === currentLayoutId)
+    : null;
 
   return (
-    <header className="bg-white border-b border-gray-200 py-3 px-6 flex items-center justify-between">
+    <header className="bg-white shadow-sm border-b border-gray-200 px-4 h-16 flex items-center justify-between">
       <div className="flex items-center space-x-2">
-        <Sofa className="h-8 w-8 text-indigo-600" />
-        <h1 className="text-2xl font-semibold text-gray-800">FurniPlace</h1>
+        <h1 className="text-xl font-semibold text-gray-800">Furniture Room Designer</h1>
+        {currentLayout && (
+          <span className="text-sm text-gray-500">
+            - {currentLayout.name}
+          </span>
+        )}
       </div>
-
-      <div className="flex items-center">
-        <div className="bg-gray-100 rounded-lg p-1 flex mr-4">
-          <button
-            onClick={() => setViewMode('3d')}
-            className={`px-3 py-1.5 rounded-md flex items-center ${
-              viewMode === '3d' ? 'bg-white shadow-sm text-indigo-600' : 'text-gray-600'
-            }`}
-          >
-            <View className="h-4 w-4 mr-1" />
-            <span className="text-sm font-medium">3D</span>
-          </button>
-          <button
-            onClick={() => setViewMode('2d')}
-            className={`px-3 py-1.5 rounded-md flex items-center ${
-              viewMode === '2d' ? 'bg-white shadow-sm text-indigo-600' : 'text-gray-600'
-            }`}
-          >
-            <Grid3X3 className="h-4 w-4 mr-1" />
-            <span className="text-sm font-medium">2D</span>
-          </button>
-          <button
-            onClick={() => setViewMode('split')}
-            className={`px-3 py-1.5 rounded-md flex items-center ${
-              viewMode === 'split' ? 'bg-white shadow-sm text-indigo-600' : 'text-gray-600'
-            }`}
-          >
-            <span className="text-sm font-medium">Split</span>
-          </button>
-        </div>
-
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={handleCreateNew}
-            className="flex items-center px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
-          >
-            <FilePlus className="h-4 w-4 mr-1" />
-            <span className="text-sm font-medium">New</span>
-          </button>
-          
-          <button
-            onClick={handleSaveLayout}
-            disabled={!currentLayout}
-            className={`flex items-center px-3 py-1.5 ${
-              currentLayout
-                ? 'bg-indigo-600 text-white hover:bg-indigo-700'
-                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-            } rounded-md transition-colors`}
-          >
-            <Save className="h-4 w-4 mr-1" />
-            <span className="text-sm font-medium">Save</span>
-          </button>
-          
-        </div>
+      
+      <div className="flex items-center space-x-3">
+        <input
+          type="text"
+          placeholder="Layout name"
+          className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          value={layoutName}
+          onChange={(e) => setLayoutName(e.target.value)}
+        />
+        
+        <button
+          onClick={handleSave}
+          disabled={isSaving || !layoutName.trim()}
+          className="bg-blue-600 text-white rounded-md px-3 py-1.5 text-sm font-medium flex items-center space-x-1 hover:bg-blue-700 transition-colors disabled:bg-blue-400"
+        >
+          {isSaving ? (
+            <>
+              <Loader2 size={16} className="animate-spin" />
+              <span>Saving...</span>
+            </>
+          ) : (
+            <>
+              <Save size={16} />
+              <span>Save Layout</span>
+            </>
+          )}
+        </button>
+        
+        {currentLayoutId && (
+          <>
+            <button
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="text-red-600 border border-red-600 rounded-md px-3 py-1.5 text-sm font-medium flex items-center space-x-1 hover:bg-red-50 transition-colors"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" />
+                  <span>Deleting...</span>
+                </>
+              ) : (
+                <>
+                  <Trash2 size={16} />
+                  <span>Delete</span>
+                </>
+              )}
+            </button>
+            
+            <button
+              onClick={exportLayout}
+              className="text-gray-700 border border-gray-300 rounded-md px-3 py-1.5 text-sm font-medium flex items-center space-x-1 hover:bg-gray-50 transition-colors"
+            >
+              <Download size={16} />
+              <span>Export</span>
+            </button>
+          </>
+        )}
       </div>
     </header>
   );
 };
-
-export default Header;

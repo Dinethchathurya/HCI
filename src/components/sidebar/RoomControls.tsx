@@ -94,6 +94,22 @@ export const RoomControls: React.FC = () => {
           
           <div>
             <div className="flex justify-between mb-1">
+              <label className="text-xs text-gray-600">Wall Transparency</label>
+              <span className="text-xs text-gray-500">{Math.round(room.wallOpacity * 100)}%</span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.1"
+              value={room.wallOpacity}
+              onChange={(e) => handleRoomChange('wallOpacity', Number(e.target.value))}
+              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+            />
+          </div>
+          
+          <div>
+            <div className="flex justify-between mb-1">
               <label className="text-xs text-gray-600">Floor Color</label>
               <div className="flex items-center">
                 <div 
@@ -120,7 +136,8 @@ export const RoomControls: React.FC = () => {
             length: 600,
             height: 250,
             wallColor: '#f5f5f5',
-            floorColor: '#e0e0e0'
+            floorColor: '#e0e0e0',
+            wallOpacity: 0.4
           })}
           className="w-full py-2 bg-gray-100 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-200 transition-colors"
         >
