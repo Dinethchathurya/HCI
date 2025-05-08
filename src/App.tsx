@@ -1,34 +1,36 @@
-import React, { useEffect } from 'react';
-import Layout from './components/Layout';
-import useLayoutStore from './store/layoutStore';
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Login } from './pages/Login';
+import { Designer } from './pages/Designer';
+import { StateProvider } from './store/StateProvider';
+import { AuthProvider } from './store/AuthProvider';
+import { useAuth } from './store/AuthProvider';
+
+const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user } = useAuth();
+  return user ? <>{children}</> : <Navigate to="/" replace />;
+};
 
 function App() {
-  const { layouts, createLayout } = useLayoutStore();
-
-  // Load saved layouts from localStorage on initial load
-  useEffect(() => {
-    const savedLayouts = localStorage.getItem('furniture-layouts');
-    
-    if (savedLayouts) {
-      try {
-        const parsedLayouts = JSON.parse(savedLayouts);
-        if (Array.isArray(parsedLayouts) && parsedLayouts.length > 0) {
-          useLayoutStore.setState({ layouts: parsedLayouts });
-        } else {
-          // Create a default layout if no saved layouts
-          createLayout('My First Layout');
-        }
-      } catch (error) {
-        console.error('Failed to parse saved layouts:', error);
-        createLayout('My First Layout');
-      }
-    } else {
-      // Create a default layout if no saved layouts
-      createLayout('My First Layout');
-    }
-  }, []);
-
-  return <Layout />;
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <StateProvider>
+          <Routes>
+            <Route path="/" element={<Login />} />
+            <Route
+              path="/designer"
+              element={
+                <ProtectedRoute>
+                  <Designer />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </StateProvider>
+      </AuthProvider>
+    </BrowserRouter>
+  );
 }
 
 export default App;
