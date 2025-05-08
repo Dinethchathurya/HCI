@@ -1,8 +1,12 @@
 {
-  "name": "ifurnish",
-  "private": true,
-  "version": "0.1.0",
+  "name": "@dinethchathurya/hci",
+  "version": "0.1.10",
   "type": "module",
+  "main": "dist/index.js",
+  "homepage": "https://dinethchathurya.github.io/HCI",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
