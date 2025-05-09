@@ -17,12 +17,12 @@ function App() {
       {/* <AuthProvider> */}
         <StateProvider>
           <Routes>
-            <Route path="/" element={<Login />} />
+            <Route path="/" element={<Designer />} />
             <Route
               path="/designer"
               element={
                 // <ProtectedRoute>
-                  <Designer />
+                  <Login/>
                 // </ProtectedRoute>
               }
             />
