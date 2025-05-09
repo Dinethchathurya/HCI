@@ -1,10 +1,11 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Canvas, useThree, useFrame } from '@react-three/fiber';
+import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
 import { useAppState } from '../../store/StateProvider';
 import { Furniture3D } from './Furniture3D';
 import { Room3D } from './Room3D';
+import { Sun } from 'lucide-react';
 
 const DragControls: React.FC = () => {
   const { camera, gl, scene } = useThree();
@@ -258,19 +259,47 @@ const DragControls: React.FC = () => {
   return null;
 };
 
+const SunLight: React.FC<{ position: [number, number, number] }> = ({ position }) => {
+  return (
+    <directionalLight
+      position={position}
+      intensity={1}
+      castShadow
+      shadow-mapSize-width={2048}
+      shadow-mapSize-height={2048}
+      shadow-camera-far={1500}
+      shadow-camera-left={-500}
+      shadow-camera-right={500}
+      shadow-camera-top={500}
+      shadow-camera-bottom={-500}
+    />
+  );
+};
+
 export const RoomEditor3D: React.FC = () => {
   const { room, furniture } = useAppState();
+  const [sunEnabled, setSunEnabled] = useState(true);
+  const [sunPosition, setSunPosition] = useState<[number, number, number]>([200, 400, 300]);
+  const [sunAngle, setSunAngle] = useState(45);
+  const [sunHeight, setSunHeight] = useState(400);
+  
+  const updateSunPosition = (angle: number, height: number) => {
+    const radius = 300;
+    const x = radius * Math.cos(angle * Math.PI / 180);
+    const z = radius * Math.sin(angle * Math.PI / 180);
+    setSunPosition([x, height, z]);
+    setSunAngle(angle);
+    setSunHeight(height);
+  };
   
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full relative">
       <Canvas shadows>
         <PerspectiveCamera makeDefault position={[0, 300, 500]} fov={50} />
         <ambientLight intensity={0.3} />
-        <directionalLight 
-          position={[200, 400, 300]} 
-          intensity={0.8} 
-          castShadow
-        />
+        
+        {sunEnabled && <SunLight position={sunPosition} />}
+        
         <OrbitControls 
           name="orbit-controls"
           enablePan={true}
@@ -300,6 +329,45 @@ export const RoomEditor3D: React.FC = () => {
         
         <DragControls />
       </Canvas>
+
+      {/* Sun Controls */}
+      <div className="absolute top-20 right-4 bg-white rounded-lg shadow-md p-4 space-y-4">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-medium text-gray-700">Sun Light</span>
+          <button
+            onClick={() => setSunEnabled(!sunEnabled)}
+            className={`p-2 rounded-md ${
+              sunEnabled ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
+            }`}
+          >
+            <Sun size={20} />
+          </button>
+        </div>
+
+        <div className="space-y-2">
+          <label className="block text-xs text-gray-600">Position</label>
+          <input
+            type="range"
+            min="0"
+            max="360"
+            value={sunAngle}
+            onChange={(e) => updateSunPosition(Number(e.target.value), sunHeight)}
+            className="w-full"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label className="block text-xs text-gray-600">Height</label>
+          <input
+            type="range"
+            min="100"
+            max="800"
+            value={sunHeight}
+            onChange={(e) => updateSunPosition(sunAngle, Number(e.target.value))}
+            className="w-full"
+          />
+        </div>
+      </div>
     </div>
   );
 };
