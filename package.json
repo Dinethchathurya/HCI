@@ -1,6 +1,6 @@
 {
   "name": "@dinethchathurya/hci",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "type": "module",
   "main": "dist/index.js",
   "homepage": "https://dinethchathurya.github.io/HCI",
