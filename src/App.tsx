@@ -14,7 +14,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 function App() {
   return (
     <BrowserRouter  basename="/HCI">
-      {/* <AuthProvider> */}
+      <AuthProvider>
         <StateProvider>
           <Routes>
             <Route path="/" element={<Designer />} />
@@ -28,7 +28,7 @@ function App() {
             />
           </Routes>
         </StateProvider>
-      {/* </AuthProvider> */}
+      </AuthProvider>
     </BrowserRouter>
   );
 }
