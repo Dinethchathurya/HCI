@@ -21,9 +21,9 @@ function App() {
             <Route
               path="/designer"
               element={
-                <ProtectedRoute>
+                // <ProtectedRoute>
                   <Designer />
-                </ProtectedRoute>
+                // </ProtectedRoute>
               }
             />
           </Routes>
