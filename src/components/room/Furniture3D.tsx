@@ -302,4 +302,4 @@ export const Furniture3D: React.FC<Furniture3DProps> = ({ furniture }) => {
       )}
     </group>
   );
-};
+}
